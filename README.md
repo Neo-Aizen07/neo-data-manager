@@ -39,8 +39,8 @@ A high-performance CLI tool developed to handle structured data management throu
 1. **Clone the Repo**
 
 ```bash
-   git clone [https://github.com/Neo-Aizen07/neo-data-manager-v1.git](https://github.com/Neo-Aizen07/neo-data-manager-v1.git)
-   cd neo-data-manager-v1
+   git clone [https://github.com/Neo-Aizen07/neo-data-manager.git](https://github.com/Neo-Aizen07/neo-data-manager.git)
+   cd neo-data-manager
    ```
 2. **Install Dependencies**
 
