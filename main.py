@@ -43,10 +43,8 @@ class RecordManager():
         print("="*50)
     def name_enter(self):
         username=input("Please enter a username :").strip()
-        if not username or username.startswith('!_-@#$%^&*()+=[]{}|;:",.<>?/`~'):
-            print("Invalid input, Username cannot be empty or start with special characters. Please try again.")
-        if not username.islower(): 
-            print("Invalid input, Username cannot contain uppercase letters. Please try again.")
+        if not username or username[0].isalnum() or username.lower():
+            print("Invalid input, Username cannot be empty or start with special characters or start with uppercase letters. Please try again.")
             return
         name=input("Please enter your name :").strip()
         if not name:
@@ -123,7 +121,6 @@ class RecordManager():
         if input_1=="name":
             name=input("Please enter your name to search :")
             for user,data in self.records.items():
-                    data=self.records[user]
                     if data["Name"].lower()==name.lower():
                         print(f"Username :{user}")
                         print(f"Name : {name}")
@@ -135,7 +132,6 @@ class RecordManager():
         elif input_1=="id":
             id=input("Please enter your ID to search :")
             for username,data in self.records.items():
-                data=self.records[username]
                 if data["ID"] == id:
                     print(f"Username :{username}")
                     print(f"Name :", data.get("Name"))
@@ -211,10 +207,11 @@ class RecordManager():
         try:
             img.show()
             time.sleep(15.0)
-            if os.path.exists(file):
-                os.remove(file)
         except Exception as e:
             print(f"Error: {e}")
+        finally:
+            if os.path.exists(file):
+                os.remove(file)
     def menu(self): #This is the menu part where the options can be accessed
         while True:
             print("-"*15+"MENU for DATABASE MANAGEMENT SYSTEM"+"-"*15)
