@@ -4,6 +4,20 @@ Python Version | License: MIT
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+\`\`\`text
+neo-data-manager/
+├── main.py                # Entry point
+├── RecordManager.py       # Core Class Logic
+├── operations.py          # Search & Delete operations
+├── storage.py             # JSON persistence logic
+├── user_entry.py          # User input & validation
+├── user_interface.py      # UI helpers & ID generation
+├── qr_code.py             # QR Code generation engine
+├── file_data.py           # Path verification utility
+├── data.json              # Local database file
+└── requirements.txt       # Library dependencies
+\`\`\`
+
 ## 🚀 What's New in v1.4
 This version is a major logic overhaul focusing on **Data Persistence** and **Search Accuracy**.
 

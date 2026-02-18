@@ -10,11 +10,6 @@ def generate_id():
         id=uuid.uuid4().hex[:10]
         id_1=str(id)
         return id_1
-def process_menu():
-    print("Loading",end='.',flush=True)
-    for i in range(3):
-        time.sleep(0.5)
-    print(" ",end=" \n", flush=True)
 def clear_menu():
         command=("cls"if os.name=="nt" else "clear")
         os.system(command)
