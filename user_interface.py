@@ -18,4 +18,4 @@ def show_intro():
         print(__file__)
         print("-"*50)
         print("WELCOME TO DATABASE MANAGEMENT SYSTEM (JSON Based)")
-        print("Version v1.3")
+        print("Version v1.4")
