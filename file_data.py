@@ -4,7 +4,7 @@ def verify():
         try:
             print(os.getcwd())
             BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-            file_path=os.path.join(BASE_DIR,"data.json")
+            file_path=os.path.join(BASE_DIR,"neo_data.db")
             print("Running from", os.path.abspath(__file__))
             print("BASE_DIR", os.path.dirname(os.path.abspath(__file__)))
             print("Files Here", os.listdir(os.path.dirname(os.path.abspath(__file__))))

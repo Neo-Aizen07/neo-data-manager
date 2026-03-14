@@ -1,10 +1,7 @@
 import os
-import datetime
-import uuid
-from storage import save_names
 from user_interface import time_save, generate_id
 from logger import log_info
-from Validation import user_valid,name_valid
+from Validation import user_valid
 def name_enter(record_manager):
     try:
         print("The data will be stores locally on ", os.path.abspath(__file__))
@@ -13,17 +10,9 @@ def name_enter(record_manager):
         if not user_valid(record_manager,username):
             log_info(f"Invalid username attempt: {username}", level="WARNING")
             return
-        print("NOTE : The name will be used only for the display purpose")
-        name_first=input("Please enter your first name :").strip()
-        name_last=input("Please enter your Last name (optional if exsists):").strip()
-        if username in record_manager.records:
-            print("Username already exists, Please Try Again")
-            return
-        if not name_valid(name_first,name_last):
-            log_info(f"Invalid name entry for: {username}", level="WARNING")
-            return
-        name=(name_first+" "+name_last).strip()
-        record_manager.update_record(username,name,generate_id(),time_save())
+        uid=generate_id()
+        record_manager.update_record(username,uid,time_save())
+        record_manager.display_id(uid)
         print("Registration Successful!")
         log_info(f"Registration successful: {username}", level="INFO")
         return

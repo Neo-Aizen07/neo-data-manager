@@ -17,5 +17,5 @@ def clear_menu():
 def show_intro():
         print(__file__)
         print("-"*50)
-        print("WELCOME TO DATABASE MANAGEMENT SYSTEM (JSON Based)")
-        print("Version v1.5")
+        print("WELCOME TO DATABASE MANAGEMENT SYSTEM (SQLite based)")
+        print("Version v1.6")

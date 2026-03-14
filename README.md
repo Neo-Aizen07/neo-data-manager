@@ -1,4 +1,4 @@
-# Neo Data Manager v1.5 🗃️
+# Neo Data Manager v1.6 🗃️
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -12,49 +12,44 @@ A privacy-first, offline CLI database management system built in Python. No clou
 ```
 neo-data-manager/
 ├── main.py            # 🟢 Entry point, menu loop
-├── RecordManager.py   # 🧠 Core brain, single source of truth for all state
-├── storage.py         # 💾 Atomic save and load — self-healing JSON
-├── operations.py      # ⚙️  Deletion logic
-├── search.py          # 🔍 Search by ID or partial username
+├── RecordManager.py   # 🧠 Core logic, all DB operations
+├── storage.py         # 💾 SQLite connection, context manager
+├── operations.py      # ⚙️  Deletion logic with confirmation
+├── search.py          # 🔍 Search by ID or username
 ├── user_entry.py      # ⌨️  Registration and input handling
 ├── user_interface.py  # 🎨 ID generation, timestamps
-├── Validation.py      # ✅ Username and name validation rules
-├── logger.py          # 📋 Logging system with ISO timestamps
-├── file_data.py       # 🛠️  File path diagnostics
-└── data.json          # 📦 Local database (auto-created if missing)
+├── Validation.py      # ✅ Username validation rules
+├── logger.py          # 📋 Logging system with timestamps
+└── file_data.py       # 🛠️  File path diagnostics
 ```
 
 ---
 
-## 🚀 What's New in v1.5
+## 🚀 What's New in v1.6
+
+### Architecture
+- **Full SQLite Migration:** Replaced `data.json` entirely with SQLite via Python's built-in `sqlite3`. No external dependencies added. This eliminates an entire class of corruption, sync, and state management issues that existed in the JSON layer.
+- **Dict Layer Removed:** The in-memory `self.records` dict is gone. Every operation queries SQLite directly. Single source of truth, no sync required.
+- **Context Manager Pattern:** Introduced `get_db()` in `storage.py` using `@contextmanager`. Connections auto-commit on success and auto-rollback on failure. No manual connection management anywhere in the codebase.
+- **Atomic Transactions:** SQLite's transaction system guarantees all-or-nothing writes. Crash mid-write — SQLite recovers automatically on next open. Stronger than the previous temp file approach.
 
 ### Bug Fixes
-- **Duplicate Username Fix:** Records were being silently overwritten due to a state management bug in `RecordManager.__init__`. Fixed by correcting how `file_load` assigns to `self.records`.
-- **Mutable State Overhaul:** Removed scattered state across modules. `RecordManager` is now the single brain — all reads and writes go through it.
-- **Atomic Save Stability:** Improved the temp file → `os.replace` pipeline to prevent corruption on interrupted writes.
-
-### New Features
-- **Partial Username Search:** Search by typing any part of a username. Returns all matches and lets you pick.
-- **Standard Logging System:** Replaced custom logger with Python's `logging` library. ISO timestamp format. Logs saved to `error.log`.
-- **Log Viewer Menu:** View today's logs or errors only directly from the CLI — no need to open the file manually.
-- **Self-Healing Database:** If `data.json` is missing, it is automatically recreated on next save. Zero manual intervention needed.
-
-### Removed
-- QR code generation (removed for stability and scope focus)
-- Search by full name (replaced with partial username search)
+- Fixed today filter in `log_his()` — was comparing full timestamp including seconds, now matches by date only using `strftime`
+- Fixed `par_search_username()` — was printing last enumerate item instead of actual search result due to variable shadowing
+- Fixed `display_data()` — silent empty screen on empty DB, now prints "No records found"
+- Fixed `delete_1()` — missing commit meant single-user deletions were not persisting across sessions
 
 ---
 
 ## ✨ Features
 
 - **Fully Offline** — zero internet dependency, zero cloud
-- **Persistent Storage** — JSON-based, survives restarts
-- **Atomic Writes** — data written to temp file first, then replaced. Corruption resistant.
-- **Self-Healing** — missing database file is recreated automatically
+- **SQLite Storage** — reliable, structured, corruption-resistant
+- **Atomic Transactions** — automatic rollback on failure, SQLite-guaranteed
 - **Unique ID Generation** — 10-character hex ID per record via `uuid`
-- **Partial Search** — find users by partial username match
-- **Validation** — strict username and name rules enforced before any record is created
-- **Logging** — every action logged with ISO timestamp, level, and message
+- **Dual Search** — exact username, partial username match, or by ID
+- **Validation** — strict username rules enforced before any record is created
+- **Logging** — every action logged with timestamp, level, and message. Viewable from CLI.
 
 ---
 
@@ -63,11 +58,13 @@ neo-data-manager/
 | Function | File | Description |
 |---|---|---|
 | `name_enter()` | user_entry.py | Register new user with validation |
-| `search_func()` | search.py | Search by ID or partial username |
+| `search_func()` | search.py | Search by ID, exact or partial username |
 | `delete_data()` | operations.py | Delete all records with confirmation |
 | `delete_person()` | operations.py | Delete single user with confirmation |
-| `file_load()` | storage.py | Load records from data.json |
-| `save_names()` | storage.py | Atomic save to data.json |
+| `get_db()` | storage.py | Context manager — handles connect, commit, rollback, close |
+| `update_record()` | RecordManager.py | Insert or replace a record |
+| `display_data()` | RecordManager.py | Display all records |
+| `display_user()` | RecordManager.py | Display single user record |
 | `log_menu()` | logger.py | View logs from CLI |
 | `verify()` | file_data.py | Diagnose file paths and existence |
 
@@ -76,7 +73,6 @@ neo-data-manager/
 ## ⚠️ Known Limitations
 
 - **Single user only** — no concurrent access support
-- **Manual JSON edits** — breaking the JSON syntax will cause load failure
 - **No universal search** — must choose ID or username mode explicitly
 - **No multi-field search** — cannot search by name, only username or ID
 
@@ -87,9 +83,10 @@ neo-data-manager/
 ```bash
 git clone https://github.com/Neo-Aizen07/neo-data-manager.git
 cd neo-data-manager
-pip install -r requirements.txt
 python main.py
 ```
+
+No external dependencies. Python 3.8+ only.
 
 ---
 
@@ -102,16 +99,12 @@ python main.py
 | v1.2 | Username indexing, UI processing effects |
 | v1.3 | Validation fixes, keyboard QR close, separate delete operations |
 | v1.4 | Data persistence fix, atomic saves, file verification, case-insensitive search |
-| v1.5 | Duplicate username fix, partial search, standard logging, self-healing JSON, mutable state overhaul |
+| v1.5 | Duplicate username fix, partial search, standard logging, mutable state overhaul |
+| v1.6 | Full SQLite migration, context manager pattern, dict layer removed, atomic transactions, bug fixes |
 
 ---
 
 ## 💡 Notes
 
-- Code is written and debugged manually — AI used only for code review and README writing
+- Built and debugged manually
 - Contributions and feedback welcome
-- Planned for v1.6: SQL migration via SQLite
-
----
-
-

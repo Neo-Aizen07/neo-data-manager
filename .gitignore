@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Neo Data Manager
+neo_data.db
+error.log
+
 # C extensions
 *.so
 

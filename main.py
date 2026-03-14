@@ -5,7 +5,6 @@ from file_data import verify
 from logger import log_info,log_menu
 manager=RecordManager()
 def menu(manager):  
-    log_info("Program has Started",level="INFO") 
     while True:
         print("\n"+"="*50)
         print("-"*15+"MENU for DATABASE MANAGEMENT SYSTEM"+"-"*15)
