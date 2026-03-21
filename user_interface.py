@@ -2,20 +2,21 @@ import time
 import os
 import datetime
 import uuid
-def time_save():
+from rich.console import Console
+from rich.text import Text
+from rich.panel import Panel
+console=Console()
+def time_save()->str:
         time=datetime.datetime.now().isoformat(timespec="seconds")
         iso_time=str(time.replace("T","/"))
         return iso_time
-def generate_id():
+def generate_id()->str:
         id=uuid.uuid4().hex[:10]
         id_1=str(id)
         return id_1
-def clear_menu():
+def clear_menu()->None:
         command=("cls"if os.name=="nt" else "clear")
         os.system(command)
-        print("*" *50)
-def show_intro():
-        print(__file__)
-        print("-"*50)
-        print("WELCOME TO DATABASE MANAGEMENT SYSTEM (SQLite based)")
-        print("Version v1.6")
+
+def show_intro() -> None:
+    console.print(Panel("[bold cyan]Privacy-first. Fully Offline. Your data stays on your machine.[/bold cyan]",title="Neo Data Manager v1.7",subtitle="No cloud. No internet required."))

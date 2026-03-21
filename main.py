@@ -3,28 +3,33 @@ from user_interface import show_intro,clear_menu
 import sys
 from file_data import verify
 from logger import log_info,log_menu
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+console=Console()
 manager=RecordManager()
 def menu(manager):  
-    while True:
-        print("\n"+"="*50)
-        print("-"*15+"MENU for DATABASE MANAGEMENT SYSTEM"+"-"*15)
-        print("1-Enter Details(For First Time Data Entry)")
-        print("2-Search Details(For Existing Data)")
-        print("3- Delete Entire Data")
-        print("4- Delete a particular user's data")
-        print("5- Verify file location and existence")
-        print("6- Open logs")
-        print("7- Exit")
-        print("="*50)
+  while True:
+        console.print(Panel(
+            "[1] Register New User\n"
+            "[2] Search Records\n"
+            "[3] Delete All Data\n"
+            "[4] Delete a User\n"
+            "[5] System Status\n"
+            "[6] Open Logs\n"
+            "[7] Exit",
+            title="Neo Data Manager v1.7",
+            style="bold cyan"
+        ))
         try:
             choice=int(input("Please enter your choice in integers :"))
             log_info(f"User entered a value : {choice}",level="INFO")
         except ValueError:
             log_info("User entered invalid menu choice",level="WARNING")
-            print("Invalid input, Please enter a number")
+            console.print(Text("Invalid input, Please enter a number", style="bold red"))
             continue
         except Exception as e:
-            print("AN Unknown Error Occured")
+            console.print(Text("An Unknown Error Occurred", style="bold red"))
             log_info(f"ERROR : {e}",level="ERROR")
         if choice==1:
             manager.name_enter()
@@ -42,7 +47,7 @@ def menu(manager):
             log_info("Program has Exited",level="INFO")
             sys.exit()
         else:
-            print("No Valid input found")
+            console.print(Text("Invalid option, Please try again", style="yellow"))
             log_info("User Entered an Incorrect Option",level="WARNING")
             continue
 if __name__=="__main__":

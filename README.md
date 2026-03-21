@@ -1,4 +1,4 @@
-# Neo Data Manager v1.6 🗃️
+# Neo Data Manager v1.7 🗃️
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,29 +15,43 @@ neo-data-manager/
 ├── RecordManager.py   # 🧠 Core logic, all DB operations
 ├── storage.py         # 💾 SQLite connection, context manager
 ├── operations.py      # ⚙️  Deletion logic with confirmation
-├── search.py          # 🔍 Search by ID or username
+├── search.py          # 🔍 Combined search — ID, exact and partial username
 ├── user_entry.py      # ⌨️  Registration and input handling
-├── user_interface.py  # 🎨 ID generation, timestamps
+├── user_interface.py  # 🎨 ID generation, timestamps, intro
 ├── Validation.py      # ✅ Username validation rules
-├── logger.py          # 📋 Logging system with timestamps
-└── file_data.py       # 🛠️  File path diagnostics
+├── logger.py          # 📋 Logging system with level filtering
+├── file_data.py       # 🛠️  System status checker
+└── neo_db.py          # 🧪 pytest test suite
 ```
 
 ---
 
-## 🚀 What's New in v1.6
+## 🚀 What's New in v1.7
 
-### Architecture
-- **Full SQLite Migration:** Replaced `data.json` entirely with SQLite via Python's built-in `sqlite3`. No external dependencies added. This eliminates an entire class of corruption, sync, and state management issues that existed in the JSON layer.
-- **Dict Layer Removed:** The in-memory `self.records` dict is gone. Every operation queries SQLite directly. Single source of truth, no sync required.
-- **Context Manager Pattern:** Introduced `get_db()` in `storage.py` using `@contextmanager`. Connections auto-commit on success and auto-rollback on failure. No manual connection management anywhere in the codebase.
-- **Atomic Transactions:** SQLite's transaction system guarantees all-or-nothing writes. Crash mid-write — SQLite recovers automatically on next open. Stronger than the previous temp file approach.
+### Code Quality
+- **Type Hints:** Full type annotations across all files — function parameters, return types, and imported types via `TYPE_CHECKING` to avoid circular imports.
+- **pytest Suite:** 11 automated tests covering validation, insert, delete, search, and edge cases. Run with `pytest neo_db.py`.
+- **Schema Hardening:** Added `NOT NULL` and `UNIQUE` constraints to the SQLite schema. Database rejects incomplete or duplicate data at the storage level, not just the application level.
+
+### Features
+- **Combined Search:** Single input searches by ID first, then exact username, then partial username match — automatically, in one flow. No more choosing search mode manually.
+- **Rich Terminal Formatting:** All output now uses the `rich` library — bordered tables for records, colored panels for user details, color-coded log entries, and styled error/success messages.
+- **Log Level Filtering:** Log menu now supports filtering by INFO, WARNING, ERROR, and CRITICAL separately, in addition to today and all-logs views.
+- **System Status:** Menu option 5 replaced the old debug dump with a clean status table showing database path, total record count, and log file status.
 
 ### Bug Fixes
-- Fixed today filter in `log_his()` — was comparing full timestamp including seconds, now matches by date only using `strftime`
-- Fixed `par_search_username()` — was printing last enumerate item instead of actual search result due to variable shadowing
-- Fixed `display_data()` — silent empty screen on empty DB, now prints "No records found"
-- Fixed `delete_1()` — missing commit meant single-user deletions were not persisting across sessions
+- Fixed `log_his()` crash — `lines` variable referenced instead of `line` in the loop, causing `AttributeError` on every log view
+- Fixed `display_data()` — table rendered before empty check, now shows "No records found" correctly
+- Fixed log message — "Record not displayed and found" replaced with accurate message and correct log level
+- Removed leftover `test_record_insertions` method that was incorrectly placed inside `RecordManager` class
+
+### UX Fixes
+- Menu labels rewritten — "Enter Details (For First Time Data Entry)" → "Register New User"
+- Intro screen cleaned — removed raw file path, replaced with styled privacy-first tagline
+- Validation error messages now styled in red via rich
+- `user_entry.py` typos fixed — "stores" → "stored", "Usermane" → "Username"
+- Minimum username length increased from 3 to 5 characters
+- All error and success messages consistently styled across the codebase
 
 ---
 
@@ -47,9 +61,10 @@ neo-data-manager/
 - **SQLite Storage** — reliable, structured, corruption-resistant
 - **Atomic Transactions** — automatic rollback on failure, SQLite-guaranteed
 - **Unique ID Generation** — 10-character hex ID per record via `uuid`
-- **Dual Search** — exact username, partial username match, or by ID
+- **Combined Search** — one input searches ID, exact username, and partial username automatically
 - **Validation** — strict username rules enforced before any record is created
-- **Logging** — every action logged with timestamp, level, and message. Viewable from CLI.
+- **Rich Display** — color-coded tables, panels, and messages throughout
+- **Logging** — every action logged with timestamp and level, filterable from CLI
 
 ---
 
@@ -58,23 +73,22 @@ neo-data-manager/
 | Function | File | Description |
 |---|---|---|
 | `name_enter()` | user_entry.py | Register new user with validation |
-| `search_func()` | search.py | Search by ID, exact or partial username |
+| `combined_search()` | search.py | Search by ID, exact or partial username in one flow |
 | `delete_data()` | operations.py | Delete all records with confirmation |
 | `delete_person()` | operations.py | Delete single user with confirmation |
 | `get_db()` | storage.py | Context manager — handles connect, commit, rollback, close |
-| `update_record()` | RecordManager.py | Insert or replace a record |
-| `display_data()` | RecordManager.py | Display all records |
-| `display_user()` | RecordManager.py | Display single user record |
-| `log_menu()` | logger.py | View logs from CLI |
-| `verify()` | file_data.py | Diagnose file paths and existence |
+| `update_record()` | RecordManager.py | Insert a record, rejects duplicates |
+| `display_data()` | RecordManager.py | Display all records as rich table |
+| `display_user()` | RecordManager.py | Display single user as rich panel |
+| `log_menu()` | logger.py | View and filter logs from CLI |
+| `verify()` | file_data.py | System status — DB, records count, log file |
 
 ---
 
 ## ⚠️ Known Limitations
 
 - **Single user only** — no concurrent access support
-- **No universal search** — must choose ID or username mode explicitly
-- **No multi-field search** — cannot search by name, only username or ID
+- **No multi-field search** — search by username or ID only
 
 ---
 
@@ -83,10 +97,16 @@ neo-data-manager/
 ```bash
 git clone https://github.com/Neo-Aizen07/neo-data-manager.git
 cd neo-data-manager
+pip install rich
 python main.py
 ```
 
-No external dependencies. Python 3.8+ only.
+**Run tests:**
+```bash
+pytest neo_db.py
+```
+
+Python 3.8+ required.
 
 ---
 
@@ -100,7 +120,8 @@ No external dependencies. Python 3.8+ only.
 | v1.3 | Validation fixes, keyboard QR close, separate delete operations |
 | v1.4 | Data persistence fix, atomic saves, file verification, case-insensitive search |
 | v1.5 | Duplicate username fix, partial search, standard logging, mutable state overhaul |
-| v1.6 | Full SQLite migration, context manager pattern, dict layer removed, atomic transactions, bug fixes |
+| v1.6 | Full SQLite migration, context manager pattern, dict layer removed, atomic transactions |
+| v1.7 | Type hints, pytest suite, combined search, rich formatting, log level filtering, schema hardening, UX fixes |
 
 ---
 

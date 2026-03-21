@@ -1,74 +1,60 @@
 from logger import log_info
-from storage import connect_db,initialise_db,get_db
-def search_func(record_manager):
-    input_1=input("Do you want to search using ID or Username:").lower()
-    if input_1=="id":
-        search_id(record_manager)
-    elif input_1=="username":
-        user_in=input("Do you have the exact username('Enter 'username')or you want to search(Enter 'search') : ").lower().strip()
-        if user_in=="username":
-            search_username(record_manager)
-        elif user_in=="search":
-            par_search_username(record_manager)
-        else:
-            print("Please Enter A Valid Input")
-            log_info(f"Invalid search type in search: {user_in}", level="WARNING")
-            return
-    else:
-        print("Please enter a valid entry and try again")
-        log_info(f"Invalid search type: {input_1}", level="WARNING")
-        return
-def search_id(record_manager):
+from storage import get_db
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
+console=Console()
+def combined_search()->None:
     with get_db() as conn:
         try:
-            enter_id=input("Please enter your ID to search :")
-            cursor=conn.execute('select * from records where id is ?',(enter_id,))
+            query=input("Search (Enter ID or Username):")
+            row=conn.execute('select * from records where id is ?',(query,)).fetchone()
+            if row:
+                table = Table(title="Search Result")
+                table.add_column("Username", style="cyan")
+                table.add_column("ID", style="magenta")
+                table.add_column("Last Saved", style="green")
+                table.add_row(row['username'], row['id'], row['last_saved'])
+                console.print(table)
+                log_info(f"ID search successful: {query}", level="INFO")
+                return
+            cursor=conn.execute("select * from records where username= ?",(query,))
             row=cursor.fetchone()
             if row:
-                print(f"Username: {row['username']}  ID: {row['id']}  Last Saved: {row['last_saved']}")
-                log_info(f"ID search successful: {enter_id}", level="INFO")
-            else:
-                print("ID not found, Try Again")
-                log_info(f"ID search no results: {enter_id}", level="WARNING")
+                table = Table(title="Search Result")
+                table.add_column("Username", style="cyan")
+                table.add_column("ID", style="magenta")
+                table.add_column("Last Saved", style="green")
+                table.add_row(row['username'], row['id'], row['last_saved'])
+                console.print(table)
+                log_info(f"Username search successful :{query}",level="INFO")
                 return
-        except Exception as e:
-            print("An Unknown Error Occured")
-            log_info(f"ERROR : {e}",level="CRITICAL")
-def par_search_username(record_manager):
-    with get_db() as conn:
-        try:
-            partial_input=input("Please enter your username to search :")
-            cursor=conn.execute("select * from records where username like ?",(f"%{partial_input}%",))
-            rows=cursor.fetchall()
-            if rows:
-                print(f"Found {len(rows)} result(s) :")
-                for index, row in enumerate(rows,start=1):
-                    print(f"{index}. {row['username']}")
+            row=conn.execute("select * from records where username like ?",(f"%{query}%",)).fetchall()
+            if row:
+                table = Table(title=f"Found {len(row)} result(s)")
+                table.add_column("No.", style="white")
+                table.add_column("Username", style="cyan")
+                for index, row in enumerate(row,start=1):
+                    table.add_row(str(index), row['username'])
+                console.print(table)
                 result=input("Please type the username you want the details about from the list above :").lower().strip()
                 cursor=conn.execute("select * from records where username = ?",(result,))
                 result_row=cursor.fetchone()
                 if result_row:
-                    print(f"Username: {result_row['username']}  ID: {result_row['id']}  Last Saved: {result_row['last_saved']}")
+                    detail_table = Table(title="User Record")
+                    detail_table.add_column("Username", style="cyan")
+                    detail_table.add_column("ID", style="magenta")
+                    detail_table.add_column("Last Saved", style="green")
+                    detail_table.add_row(result_row['username'], result_row['id'], result_row['last_saved'])
+                    console.print(detail_table)
                     log_info(f"Username search successful: {result}", level="INFO")
+                    return
+                else:
+                    console.print(Text("Username Not Found",style="bold red"))
             else:
-                print("Username not found")
-                log_info(f"Username not found for the search {partial_input}",level="WARNING")
+                console.print(Text(f"{query} not found", style="bold red"))
+                log_info(f"Username not found {query}",level="WARNING")
                 return
         except Exception as e:
-            print(f"An Unexpected Error Occured")
-            log_info(f"ERROR : {e}", level="ERROR")
-def search_username(record_manager):
-    with get_db() as conn: 
-        try:
-            input_1=input("Please Enter Your Username : ")
-            cursor=conn.execute("select * from records where username= ?",(input_1,))
-            row=cursor.fetchone()
-            if row:
-                print(f"Username: {row['username']}  ID: {row['id']}  Last Saved: {row['last_saved']}")
-                log_info(f"Username search successful :{input_1}",level="INFO")
-            else:
-                print("Username not found")
-                log_info(f"Username not found {input_1}",level="WARNING")
-        except Exception as e:
-            print("An Unknown Error Occured")
+            console.print(Text("An Unknown Error Occurred", style="bold red"))
             log_info(f"ERROR : {e}",level="CRITICAL")
